@@ -11,8 +11,8 @@ Server:<br>
 - Install XAMPP <br>
 - Create a copy of your .env.example file and name it .env<br>
 - Generate an app encryption key which will be stored in .env file --> Terminal: php artisan key:generate<br>
-- Create an empty database for our application<br>
-- In the .env file, add database information --> fill in the DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, and DB_PASSWORD options to match the credentials of the database you just created<br>
+- Create an empty database for your application<br>
+- In the .env file, add database information --> fill in the DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, and DB_PASSWORD options to match the credentials of the database you created<br>
 - Migrate the database --> Terminal: php artisan migrate<br>
 - Terminal: php artisan serve<br><br>
 Client:<br>
