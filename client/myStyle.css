@@ -66,15 +66,15 @@ h1 {
   box-shadow: 5px 6px 6px #888888;
 }
 
-.searchPlaces {
-  width: 100%;
-  text-align: center;
+.search-input {
+  display: flex;
+  justify-content: center;
   margin: auto;
   background-color: #d1d1d1;
   color: black;
 }
 
-div.searchPlaces input[type="text"] {
+div.search-input input[type="text"] {
   padding: 10px;
   font-size: 15px;
   border: 1px solid rgb(53, 53, 53);
@@ -84,7 +84,7 @@ div.searchPlaces input[type="text"] {
   box-shadow: 5px 10px 18px #888888;
 }
 
-div.searchPlaces button {
+div.search-input button {
   width: 10%;
   padding: 10px;
   background: #2196f3;
@@ -97,18 +97,51 @@ div.searchPlaces button {
   box-shadow: 5px 10px 18px #888888;
 }
 
-div.searchPlaces button:hover {
+div.search-input button:hover {
   background: #0b7dda;
 }
 
-div.searchPlaces::after {
+div.search-input::after {
   content: "";
   clear: both;
   display: table;
 }
 
+.search-matches {
+  display: flex;
+  justify-content: center;
+}
+
+.search-matches ul {
+  justify-content: left;
+  padding: 0;
+  margin-top: 2px;
+  margin: 0;
+  width: 70%;
+  margin-right: auto;
+  margin-left: auto;
+  list-style-type: none;
+  position: absolute;
+  z-index: 1;
+}
+
+#myUL li a {
+  border: 1px solid #ddd;
+  background-color: #f6f6f6;
+  padding: 8px;
+  text-decoration: none;
+  font-size: 15px;
+  color: black;
+  display: block;
+  border-radius: 4px;
+}
+
+#myUL li a:hover:not(.header) {
+  background-color: #eee;
+}
+
 .map-container {
-  height: 100%;
+  height: 80%;
   width: 100%;
   text-align: center;
   background-color: #d1d1d1;
@@ -116,7 +149,7 @@ div.searchPlaces::after {
 }
 
 #map {
-  height: 90%;
+  height: 70%;
   width: 70%;
   display: inline-block;
   border-radius: 4px;
@@ -125,11 +158,7 @@ div.searchPlaces::after {
 
 @media only screen and (max-width: 1050px) {
   #map {
-    height: 70%;
     width: 100%;
-    display: inline-block;
-    border-radius: 4px;
-    box-shadow: 0px 0px 0px #888888;
   }
 }
 
@@ -156,3 +185,44 @@ a:hover {
   text-decoration: underline;
 }
 
+.closebtn {
+  margin-left: 15px;
+  color: white;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.closebtn:hover {
+  color: rgb(83, 83, 83);
+}
+
+.alert {
+  text-align: center;
+  padding: 20px;
+  background-color: #2196f3;
+  color: white;
+  opacity: 1;
+  transition: opacity 0.6s;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  box-shadow: 5px 6px 6px #4b4b4b;
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  margin-top: 200px;
+  margin-left: 250px;
+  margin-right: 250px;
+}
+
+@media only screen and (max-width: 800px) {
+  .alert {
+    text-align: left;
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+}

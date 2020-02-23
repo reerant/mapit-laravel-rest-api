@@ -4,6 +4,7 @@ let newMarker = null;
 let googleMarkersArray = [];
 let showingSearchedMarker = false;
 let existingMarkerWindow = false;
+const API_URL = "http://localhost:8000/api/marker";
 
 function initMap() {
   //map options, center to Helsinki by default lat + lng
@@ -26,7 +27,7 @@ function initMap() {
 
 //get all markers to map from DB
 function getMarkersToMap() {
-  fetch("http://localhost:8000/api/marker/")
+  fetch(API_URL)
     .then(response => response.json())
     .then(data => {
       let markers = data.data;
@@ -39,7 +40,7 @@ function getMarkersToMap() {
 }
 //get specific marker to map by markerId
 function getMarkerToMap(markerId) {
-  fetch("http://localhost:8000/api/marker/" + markerId)
+  fetch(API_URL + "/" + markerId)
     .then(response => response.json())
     .then(data => {
       let marker = data.data;
@@ -49,7 +50,10 @@ function getMarkerToMap(markerId) {
 
 function showExistingMarker(map, existingMarker) {
   let marker = new google.maps.Marker({
-    position: { lat: existingMarker.lat, lng: existingMarker.lng },
+    position: {
+      lat: Number(existingMarker.lat),
+      lng: Number(existingMarker.lng)
+    },
     map: map,
     //add own attribute to google maps marker so that every marker icon on the map can be indentified
     markerId: existingMarker.id
@@ -62,10 +66,10 @@ function showExistingMarker(map, existingMarker) {
         <label>Title:</label>
         <br>
         <input type="text" name="title" id="title" value="${existingMarker.inputTitle}">
-        <br>
+        <br><br>
         <label>Description:</label>
         <br>
-        <input type="text" name="description" id="description" value="${existingMarker.inputDescription}"><br><br>
+        <textarea type="text" name="description" id="description" cols="40" rows="5">${existingMarker.inputDescription}</textarea><br><br>
         <button onclick="updateExistingMarker(${existingMarker.id})" type="button">Update</button>
         <button onclick="deleteExistingMarker(${existingMarker.id})" type="button">Delete</button>
         <button onclick="cancelExistingMarker(${existingMarker.id})" id="cancelBtn" type="button">Cancel</button>
@@ -115,10 +119,10 @@ function addNewMarker(map, lat, lng) {
         <label>Title:</label>
         <br> 
         <input type="text" name="title" id="title">
-        <br>
+        <br><br>
         <label>Description:</label>
         <br>
-        <input type="text" name="description" id="description"><br><br>
+        <textarea type="text" name="description" id="description" cols="40" rows="5"></textarea><br><br>
         <button onclick="storeMarker( ${lat}, ${lng})" type="button">Save</button>
         <button onclick="cancelNewMarker()" id="cancelBtn" type="button">Cancel</button>
     </form>
@@ -147,16 +151,19 @@ function addNewMarker(map, lat, lng) {
 function storeMarker(lat, lng) {
   let inputTitle = document.getElementById("title").value;
   let inputDescription = document.getElementById("description").value;
+  //strip tags from input text that goes to DB
+  let StrippedInputTitle = inputTitle.replace(/(<([^>]+)>)/gi, "");
+  let StrippedInputDescription = inputDescription.replace(/(<([^>]+)>)/gi, "");
 
-  fetch("http://localhost:8000/api/marker/", {
+  fetch(API_URL, {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       Accept: "application/json"
     },
     method: "POST",
     body: JSON.stringify({
-      inputTitle: inputTitle,
-      inputDescription: inputDescription,
+      inputTitle: StrippedInputTitle,
+      inputDescription: StrippedInputDescription,
       lat: lat,
       lng: lng
     })
@@ -186,7 +193,7 @@ function storeMarker(lat, lng) {
 //user deletes a marker
 function deleteExistingMarker(markerId) {
   //delete from DB
-  fetch("http://localhost:8000/api/marker/" + markerId, {
+  fetch(API_URL + "/" + markerId, {
     method: "DELETE"
   });
 
@@ -208,13 +215,16 @@ function cancelNewMarker() {
 function updateExistingMarker(markerId) {
   let inputTitle = document.getElementById("title").value;
   let inputDescription = document.getElementById("description").value;
+  //strip tags from updated input text that goes to DB
+  let StrippedInputTitle = inputTitle.replace(/(<([^>]+)>)/gi, "");
+  let StrippedInputDescription = inputDescription.replace(/(<([^>]+)>)/gi, "");
 
-  fetch("http://localhost:8000/api/marker/" + markerId, {
+  fetch(API_URL + "/" + markerId, {
     headers: { "Content-Type": "application/json; charset=utf-8" },
     method: "PUT",
     body: JSON.stringify({
-      inputTitle: inputTitle,
-      inputDescription: inputDescription
+      inputTitle: StrippedInputTitle,
+      inputDescription: StrippedInputDescription
     })
   });
   //close the infowindow when update button gets clicked
@@ -234,13 +244,16 @@ function cancelExistingMarker(markerId) {
 }
 
 function searchPlaces() {
+  //clear filterTitles listing
+  let ul = document.getElementById("myUL");
+  ul.innerHTML = "";
   let foundMatch = false;
   //get query from search bar
   let query = document.getElementById("searchPlaces").value;
   //clear search bar
   document.getElementById("searchPlaces").value = "";
 
-  fetch("http://localhost:8000/api/marker/")
+  fetch(API_URL)
     .then(response => response.json())
     .then(data => {
       let allMarkers = data.data;
@@ -275,12 +288,58 @@ function searchPlaces() {
 //show little info how to use the app
 function getInfo() {
   alert(
-    "Start adding new places by clicking on the map. Please don't give the same title for multiple places." +
+    "Start adding new places by clicking on the map." +
       " You can update information on existing place or remove the place from the map." +
-      " You can also search from added places by the title. Please use the whole title when searching."
+      " You can also search places by the title name."
   );
 }
 
+let fetchPromises = [];
+
+function filterTitles() {
+  let i, txtValue;
+  let query = document.getElementById("searchPlaces").value;
+  let toUpCaseQuery = query.toUpperCase();
+  let titlesFromDb = [];
+
+  //everytime user types into search bar, fetch promise is pushed into array
+  fetchPromises.push(fetch(API_URL));
+  Promise.all(fetchPromises)
+    //get the latest promise response from array --> doesn't show the same title more than once in the listing
+    .then(response => response[response.length - 1].json())
+    .then(data => {
+      let ul = document.getElementById("myUL");
+      ul.innerHTML = "";
+      let allMarkers = data.data;
+      //go through all titles from db
+      if (allMarkers.length !== 0) {
+        for (let index = 0; index < allMarkers.length; index++) {
+          const markerObj = allMarkers[index];
+          let inputTitle = markerObj.inputTitle;
+          titlesFromDb.push(inputTitle);
+        }
+      }
+      if (query !== "") {
+        //create a list of titles under the search bar + ad onclick so user can choose a specific title
+        for (i = 0; i < titlesFromDb.length; i++) {
+          let li = document.createElement("li");
+          let a = document.createElement("a");
+          let title = titlesFromDb[i];
+          a.innerHTML += title;
+          a.onclick = function() {
+            document.getElementById("searchPlaces").value = title;
+            ul.innerHTML = "";
+          };
+          txtValue = a.textContent || a.innerText;
+          //in the listing show only matching titles for the input
+          if (txtValue.toUpperCase().indexOf(toUpCaseQuery) > -1) {
+            ul.appendChild(li);
+            li.appendChild(a);
+          }
+        }
+      }
+    });
+}
 //user can get their current location on the map
 function findMe() {
   // try geolocation

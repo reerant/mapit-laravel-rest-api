@@ -17,11 +17,12 @@
       defer
       src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=drawing&callback=initMap"
     ></script>
+
     <div id="container">
       <div class="header">
         <h1>MapIt</h1>
       </div>
-      <div class="infoAndFindBtns">
+      <div class="infoAndFindBtns">     
         <!--shows alert-window with little info of how to use the app  -->
         <button class="infoBtn" onclick="getInfo()" type="button">
           Info
@@ -31,20 +32,35 @@
           Find me
         </button>
       </div>
-      <div class="searchPlaces">
+      <div class="search-input">
+        <!--filter titles from DB by input -->
         <input
+          oninput="filterTitles()"
           type="text"
-          placeholder="Search your places by title"
+          placeholder="Search places by title"
           name="searchPlaces"
           id="searchPlaces"
         />
         <!--searches added places on the map by the given title name  -->
-        <button onclick="searchPlaces()" type="button">
+        <button id="searchBtn" onclick="searchPlaces()" type="button">
           <i class="fa fa-search"></i>
         </button>
       </div>
+      <div class="search-matches">
+        <ul id="myUL"></ul>
+      </div>
     </div>
+    <!-- </div> -->
     <div class="map-container">
+      <div class="alert">
+        <span
+          class="closebtn"
+          onclick="this.parentElement.style.display='none';"
+          >&times;</span
+        >
+        <strong>Note!</strong> This is a demo site. Do not use personal or any
+        other sensitive information when adding places to the map.
+      </div>
       <div id="map"></div>
     </div>
     <div class="footer">
@@ -53,5 +69,15 @@
         >Google Maps API.</a
       >
     </div>
+    <script>
+      //enter click === searchBtn click
+      var input = document.getElementById("searchPlaces");
+      input.addEventListener("keyup", function(event) {
+        if (event.keyCode === 13) {
+          event.preventDefault();
+          document.getElementById("searchBtn").click();
+        }
+      });
+    </script>
   </body>
 </html>
